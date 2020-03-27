@@ -7,6 +7,10 @@ LDI = 0b10000010
 PRN = 0b01000111
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
+ADD = 0b10100000
+
 
 sp = 7
 
@@ -31,6 +35,9 @@ class CPU:
         self.branchtable[MUL] = self.handle_mul
         self.branchtable[PUSH] = self.handle_push
         self.branchtable[POP] = self.handle_pop
+        self.branchtable[CALL] = self.handle_call
+        self.branchtable[RET] = self.handle_ret
+        self.branchtable[ADD] = self.handle_add
         self.reg[7] = 0xF4
 
 
@@ -73,7 +80,21 @@ class CPU:
         self.reg[reg_num] = value
         self.reg[sp] += 1
         self.pc += 2
+    def handle_call(self):
+        reg_num = self.ram_read(self.pc + 1)
+        self.reg[sp] -= 1
+        self.ram[self.reg[sp]] = self.pc + 2
+        self.pc = self.reg[reg_num]
+    
+    def handle_ret(self):
+        self.pc = self.ram[self.reg[sp]]
+        self.reg[sp] += 1
 
+    def handle_add(self):
+        num_1 = self.ram_read(self.pc + 1)
+        num_2 = self.ram_read(self.pc + 2)
+        self.alu(ADD, num_1, num_2)
+        self.pc += 3
 
     def ram_read(self, address):
         # memory address register
